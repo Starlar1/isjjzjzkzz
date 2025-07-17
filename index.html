@@ -1,0 +1,814 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XO Game</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --x-color: #fd79a8;
+            --o-color: #74b9ff;
+            --bg: #fafafa;
+            --card-bg: #ffffff;
+            --text: #2d3436;
+            --light-text: #636e72;
+            --shadow: 0 10px 20px rgba(0,0,0,0.1);
+            --border-radius: 16px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        /* Setup Screen */
+        .setup-screen {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        .setup-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: var(--primary);
+        }
+        
+        .profile-container {
+            margin-bottom: 25px;
+        }
+        
+        .profile-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s;
+            border: 4px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .profile-circle:hover {
+            transform: scale(1.05);
+        }
+        
+        .profile-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .initials {
+            font-size: 42px;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .upload-icon {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+        
+        .profile-circle:hover .upload-icon {
+            transform: scale(1.1);
+        }
+        
+        .upload-icon i {
+            color: var(--primary);
+            font-size: 14px;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .input-field:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: #5a4bd1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(108, 92, 231, 0.4);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-secondary:hover {
+            background: #f5f3ff;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        /* Game Screen */
+        .game-screen {
+            display: none;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .players {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            gap: 15px;
+        }
+        
+        .player {
+            text-align: center;
+            flex: 1;
+            transition: all 0.3s;
+            padding: 10px;
+            border-radius: 12px;
+        }
+        
+        .player.active {
+            background: rgba(108, 92, 231, 0.05);
+        }
+        
+        .player-profile {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            border: 3px solid white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .player.active .player-profile {
+            box-shadow: 0 0 0 3px var(--primary), 0 0 20px rgba(108, 92, 231, 0.3);
+        }
+        
+        .player-profile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .player-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .player-symbol {
+            font-weight: 700;
+            font-size: 18px;
+        }
+        
+        .player-symbol.x {
+            color: var(--x-color);
+        }
+        
+        .player-symbol.o {
+            color: var(--o-color);
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 30px 0;
+        }
+        
+        .cell {
+            aspect-ratio: 1;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        
+        .cell:hover {
+            transform: scale(1.03);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .cell.x {
+            color: var(--x-color);
+        }
+        
+        .cell.o {
+            color: var(--o-color);
+        }
+        
+        .cell.win {
+            animation: pulse 1s infinite;
+            box-shadow: 0 0 0 3px var(--primary);
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .game-info {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 20px 0;
+            min-height: 27px;
+            color: var(--primary);
+        }
+        
+        .win-line {
+            position: absolute;
+            background: var(--primary);
+            height: 6px;
+            border-radius: 3px;
+            z-index: 10;
+            transform-origin: 0 0;
+            animation: lineDraw 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        
+        @keyframes lineDraw {
+            0% { 
+                opacity: 0;
+                transform: scaleX(0);
+            }
+            100% { 
+                opacity: 1;
+                transform: scaleX(1);
+            }
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .action-buttons .btn {
+            flex: 1;
+        }
+        
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--light-text);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+        
+        .back-link:hover {
+            color: var(--primary);
+        }
+        
+        .back-link i {
+            margin-right: 5px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .setup-screen, .game-screen {
+                padding: 25px;
+            }
+            
+            .profile-circle {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .initials {
+                font-size: 36px;
+            }
+            
+            .player-profile {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .cell {
+                font-size: 40px;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Setup Screen -->
+        <div class="setup-screen" id="playerSetup">
+            <h2 class="setup-title" id="setupTitle">Player 1 Setup</h2>
+            
+            <div class="profile-container">
+                <div class="profile-circle" id="currentPlayerCircle">
+                    <div class="initials" id="currentInitials">P1</div>
+                    <div class="upload-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                </div>
+                <input type="file" class="file-input" id="playerImage" accept="image/*">
+            </div>
+            
+            <input type="text" class="input-field" id="playerName" placeholder="Enter player name">
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="uploadBtn">
+                    <i class="fas fa-image"></i> Upload Photo
+                </button>
+                <button class="btn btn-primary" id="nextBtn">
+                    Continue <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Game Screen -->
+        <div class="game-screen" id="gameScreen">
+            <div class="players">
+                <div class="player active" id="player1Display">
+                    <div class="player-profile">
+                        <div class="initials">P1</div>
+                    </div>
+                    <div class="player-name">Player 1</div>
+                    <div class="player-symbol x">(X)</div>
+                </div>
+                
+                <div class="player" id="player2Display">
+                    <div class="player-profile">
+                        <div class="initials">P2</div>
+                    </div>
+                    <div class="player-name">Player 2</div>
+                    <div class="player-symbol o">(O)</div>
+                </div>
+            </div>
+            
+            <div class="game-board" id="gameBoard">
+                <div class="cell" data-index="0"></div>
+                <div class="cell" data-index="1"></div>
+                <div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div>
+                <div class="cell" data-index="4"></div>
+                <div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div>
+                <div class="cell" data-index="7"></div>
+                <div class="cell" data-index="8"></div>
+            </div>
+            
+            <div class="game-info" id="gameInfo">
+                Player 1's turn
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="resetBtn">
+                    <i class="fas fa-redo"></i> Restart
+                </button>
+                <button class="btn btn-primary" id="newGameBtn">
+                    <i class="fas fa-users"></i> New Game
+                </button>
+            </div>
+            
+            <a href="#" class="back-link" id="backLink">
+                <i class="fas fa-arrow-left"></i> Back to setup
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const playerSetup = document.getElementById('playerSetup');
+        const gameScreen = document.getElementById('gameScreen');
+        const setupTitle = document.getElementById('setupTitle');
+        const currentPlayerCircle = document.getElementById('currentPlayerCircle');
+        const currentInitials = document.getElementById('currentInitials');
+        const playerImage = document.getElementById('playerImage');
+        const playerName = document.getElementById('playerName');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        
+        const player1Display = document.getElementById('player1Display');
+        const player2Display = document.getElementById('player2Display');
+        const gameBoard = document.getElementById('gameBoard');
+        const gameInfo = document.getElementById('gameInfo');
+        const resetBtn = document.getElementById('resetBtn');
+        const newGameBtn = document.getElementById('newGameBtn');
+        const backLink = document.getElementById('backLink');
+        
+        // Game state
+        let currentPlayer = 'X';
+        let currentSetupPlayer = 1;
+        let player1 = {
+            name: 'Player 1',
+            symbol: 'X',
+            image: null
+        };
+        let player2 = {
+            name: 'Player 2',
+            symbol: 'O',
+            image: null
+        };
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = true;
+        let winLine = null;
+        
+        // Event Listeners
+        uploadBtn.addEventListener('click', () => playerImage.click());
+        playerImage.addEventListener('change', handleImageUpload);
+        nextBtn.addEventListener('click', setupPlayers);
+        resetBtn.addEventListener('click', resetGame);
+        newGameBtn.addEventListener('click', goBackToSetup);
+        backLink.addEventListener('click', goBackToSetup);
+        
+        // Setup game board cells
+        document.querySelectorAll('.cell').forEach(cell => {
+            cell.addEventListener('click', handleCellClick);
+        });
+        
+        // Initialize
+        updateSetupUI();
+        
+        // Functions
+        function updateSetupUI() {
+            if (currentSetupPlayer === 1) {
+                setupTitle.textContent = "Player 1 Setup";
+                currentInitials.textContent = getInitials(player1.name) || "P1";
+                playerName.value = player1.name || "";
+                playerName.placeholder = "Enter Player 1 name";
+                
+                // Clear any existing image
+                if (currentPlayerCircle.querySelector('img')) {
+                    currentPlayerCircle.querySelector('img').remove();
+                    currentInitials.style.display = 'block';
+                }
+                
+                // Set player 1 image if exists
+                if (player1.image) {
+                    const img = document.createElement('img');
+                    img.src = player1.image;
+                    img.alt = player1.name;
+                    currentPlayerCircle.insertBefore(img, currentPlayerCircle.firstChild);
+                    currentInitials.style.display = 'none';
+                } else {
+                    currentInitials.textContent = getInitials(player1.name) || "P1";
+                    currentInitials.style.display = 'block';
+                }
+                
+            } else {
+                setupTitle.textContent = "Player 2 Setup";
+                currentInitials.textContent = getInitials(player2.name) || "P2";
+                playerName.value = player2.name || "";
+                playerName.placeholder = "Enter Player 2 name";
+                
+                // Clear any existing image
+                if (currentPlayerCircle.querySelector('img')) {
+                    currentPlayerCircle.querySelector('img').remove();
+                    currentInitials.style.display = 'block';
+                }
+                
+                // Set player 2 image if exists
+                if (player2.image) {
+                    const img = document.createElement('img');
+                    img.src = player2.image;
+                    img.alt = player2.name;
+                    currentPlayerCircle.insertBefore(img, currentPlayerCircle.firstChild);
+                    currentInitials.style.display = 'none';
+                } else {
+                    currentInitials.textContent = getInitials(player2.name) || "P2";
+                    currentInitials.style.display = 'block';
+                }
+            }
+            
+            // Ensure upload icon exists
+            if (!currentPlayerCircle.querySelector('.upload-icon')) {
+                const uploadIcon = document.createElement('div');
+                uploadIcon.className = 'upload-icon';
+                uploadIcon.innerHTML = '<i class="fas fa-camera"></i>';
+                currentPlayerCircle.appendChild(uploadIcon);
+            }
+        }
+        
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                if (currentSetupPlayer === 1) {
+                    player1.image = event.target.result;
+                } else {
+                    player2.image = event.target.result;
+                }
+                updateSetupUI();
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function setupPlayers() {
+            const name = playerName.value.trim();
+            
+            if (currentSetupPlayer === 1) {
+                // Set player 1 details
+                player1.name = name || 'Player 1';
+                currentSetupPlayer = 2;
+                updateSetupUI();
+                playerName.focus();
+            } else {
+                // Set player 2 details
+                player2.name = name || 'Player 2';
+                
+                // Update display
+                updatePlayerDisplays();
+                
+                // Switch to game screen
+                playerSetup.style.display = 'none';
+                gameScreen.style.display = 'block';
+                
+                // Start the game
+                resetGame();
+            }
+        }
+        
+        function updatePlayerDisplays() {
+            // Player 1
+            player1Display.querySelector('.player-name').textContent = player1.name;
+            const p1Initials = player1Display.querySelector('.initials');
+            p1Initials.textContent = getInitials(player1.name);
+            
+            if (player1.image) {
+                player1Display.querySelector('.player-profile').innerHTML = '';
+                const img = document.createElement('img');
+                img.src = player1.image;
+                img.alt = player1.name;
+                player1Display.querySelector('.player-profile').appendChild(img);
+            } else {
+                player1Display.querySelector('.player-profile').innerHTML = '';
+                p1Initials.textContent = getInitials(player1.name);
+                player1Display.querySelector('.player-profile').appendChild(p1Initials);
+            }
+            
+            // Player 2
+            player2Display.querySelector('.player-name').textContent = player2.name;
+            const p2Initials = player2Display.querySelector('.initials');
+            p2Initials.textContent = getInitials(player2.name);
+            
+            if (player2.image) {
+                player2Display.querySelector('.player-profile').innerHTML = '';
+                const img = document.createElement('img');
+                img.src = player2.image;
+                img.alt = player2.name;
+                player2Display.querySelector('.player-profile').appendChild(img);
+            } else {
+                player2Display.querySelector('.player-profile').innerHTML = '';
+                p2Initials.textContent = getInitials(player2.name);
+                player2Display.querySelector('.player-profile').appendChild(p2Initials);
+            }
+        }
+        
+        function getInitials(name) {
+            if (!name) return '';
+            return name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
+        }
+        
+        function handleCellClick(e) {
+            const index = e.target.getAttribute('data-index');
+            
+            if (board[index] !== '' || !gameActive) return;
+            
+            // Update board
+            board[index] = currentPlayer;
+            e.target.textContent = currentPlayer;
+            e.target.classList.add(currentPlayer.toLowerCase());
+            
+            // Check for win or draw
+            const winResult = checkWin();
+            if (winResult) {
+                gameActive = false;
+                highlightWinningCells(winResult.line);
+                const winnerName = currentPlayer === 'X' ? player1.name : player2.name;
+                gameInfo.textContent = `${winnerName} wins! 🎉`;
+                return;
+            }
+            
+            if (checkDraw()) {
+                gameInfo.textContent = "Game ended in a draw! 🤝";
+                gameActive = false;
+                return;
+            }
+            
+            // Switch player
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            
+            // Update UI
+            updatePlayerTurnUI();
+        }
+        
+        function checkWin() {
+            const winPatterns = [
+                [0, 1, 2], // top row
+                [3, 4, 5], // middle row
+                [6, 7, 8], // bottom row
+                [0, 3, 6], // left column
+                [1, 4, 7], // center column
+                [2, 5, 8], // right column
+                [0, 4, 8], // diagonal top-left to bottom-right
+                [2, 4, 6]  // diagonal top-right to bottom-left
+            ];
+            
+            for (const pattern of winPatterns) {
+                const [a, b, c] = pattern;
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    return { winner: board[a], line: pattern };
+                }
+            }
+            
+            return null;
+        }
+        
+        function highlightWinningCells(winningLine) {
+            // Remove any existing win line
+            if (winLine) {
+                winLine.remove();
+            }
+            
+            // Highlight winning cells
+            winningLine.forEach(index => {
+                document.querySelector(`.cell[data-index="${index}"]`).classList.add('win');
+            });
+            
+            // Draw the win line
+            drawWinLine(winningLine);
+        }
+        
+        function drawWinLine(winningLine) {
+            const cells = document.querySelectorAll('.cell');
+            const firstCell = cells[winningLine[0]];
+            const lastCell = cells[winningLine[2]];
+            
+            const firstRect = firstCell.getBoundingClientRect();
+            const lastRect = lastCell.getBoundingClientRect();
+            const gameBoardRect = gameBoard.getBoundingClientRect();
+            
+            // Calculate positions relative to game board
+            const x1 = firstRect.left + firstRect.width / 2 - gameBoardRect.left;
+            const y1 = firstRect.top + firstRect.height / 2 - gameBoardRect.top;
+            const x2 = lastRect.left + lastRect.width / 2 - gameBoardRect.left;
+            const y2 = lastRect.top + lastRect.height / 2 - gameBoardRect.top;
+            
+            // Calculate line length and angle
+            const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+            
+            // Create line element
+            winLine = document.createElement('div');
+            winLine.className = 'win-line';
+            winLine.style.width = `${length}px`;
+            winLine.style.left = `${x1}px`;
+            winLine.style.top = `${y1}px`;
+            winLine.style.transform = `rotate(${angle}deg)`;
+            
+            // Add to game board
+            gameBoard.appendChild(winLine);
+        }
+        
+        function checkDraw() {
+            return board.every(cell => cell !== '');
+        }
+        
+        function updatePlayerTurnUI() {
+            player1Display.classList.toggle('active', currentPlayer === 'X');
+            player2Display.classList.toggle('active', currentPlayer === 'O');
+            gameInfo.textContent = `${currentPlayer === 'X' ? player1.name : player2.name}'s turn`;
+        }
+        
+        function resetGame() {
+            // Reset board
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            gameActive = true;
+            
+            // Reset UI
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.textContent = '';
+                cell.className = 'cell';
+                cell.style.backgroundColor = '';
+            });
+            
+            // Remove win line if exists
+            if (winLine) {
+                winLine.remove();
+                winLine = null;
+            }
+            
+            // Reset player highlights
+            updatePlayerTurnUI();
+        }
+        
+        function goBackToSetup(e) {
+            if (e) e.preventDefault();
+            gameScreen.style.display = 'none';
+            playerSetup.style.display = 'block';
+            
+            // Reset to player 1 setup
+            currentSetupPlayer = 1;
+            updateSetupUI();
+        }
+    </script>
+</body>
+</html>
